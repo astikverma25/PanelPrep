@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Mic, Volume2, ShieldCheck, History } from "lucide-react";
+import { Mic, Volume2, ShieldCheck, History, LayoutDashboard } from "lucide-react";
 
 export const Header: React.FC = () => {
   return (
@@ -31,8 +31,16 @@ export const Header: React.FC = () => {
           </div>
 
           <Link
-            href="/history"
-            className="flex items-center gap-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors"
+            href="/dashboard"
+            className="flex items-center gap-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 px-3.5 py-1.5 rounded-lg shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+          >
+            <LayoutDashboard className="w-3.5 h-3.5" />
+            <span>Dashboard</span>
+          </Link>
+
+          <Link
+            href="/dashboard/history"
+            className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors"
           >
             <History className="w-3.5 h-3.5 text-slate-400" />
             <span>History</span>
