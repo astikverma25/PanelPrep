@@ -10,6 +10,7 @@
     "simulate": "ts-node --project tsconfig.scripts.json scripts/simulate-gd.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.3",
     "clsx": "^2.1.1",
     "idb": "^8.0.0",
     "lucide-react": "^0.453.0",

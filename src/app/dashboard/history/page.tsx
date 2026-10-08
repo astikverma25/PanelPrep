@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { GDReport } from "@/lib/types/report";
-import { getAllReportsFromHistory } from "@/lib/storage/indexedDb";
+import { getAllReports } from "@/lib/storage/reportStorage";
 import { useSessionStore } from "@/hooks/useSessionStore";
 import { Button } from "@/components/common/Button";
 import { History, Calendar, Clock, ArrowRight, Play, Sparkles } from "lucide-react";
@@ -15,7 +15,7 @@ export default function DashboardHistoryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getAllReportsFromHistory().then((data) => {
+    getAllReports().then((data) => {
       setReports(data.reverse());
       setLoading(false);
     });

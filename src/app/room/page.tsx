@@ -11,7 +11,7 @@ import { evaluatePhaseProgression } from "@/lib/orchestrator/timerManager";
 import { buildModeratorPrompt } from "@/lib/ai/prompts";
 import { PERSONAS } from "@/lib/constants/personas";
 import { isEchoOfCurrentAiSpeech } from "@/lib/speech/echoFilter";
-import { saveReportToHistory } from "@/lib/storage/indexedDb";
+import { saveReport } from "@/lib/storage/reportStorage";
 import { calculateDeterministicStats } from "@/lib/ai/statsCalculator";
 import { GDReport } from "@/lib/types/report";
 
@@ -521,7 +521,7 @@ export default function RoomPage() {
       if (!res.ok) throw new Error("Report API non-200");
       const reportData: GDReport = await res.json();
       setReport(reportData);
-      await saveReportToHistory(reportData);
+      await saveReport(reportData, config);
       router.push("/report");
     } catch (err) {
       console.warn("Report generation fallback triggered:", err);
@@ -599,7 +599,7 @@ export default function RoomPage() {
       };
 
       setReport(fallbackReport);
-      await saveReportToHistory(fallbackReport);
+      await saveReport(fallbackReport, config);
       router.push("/report");
     }
   };

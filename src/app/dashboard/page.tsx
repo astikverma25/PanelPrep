@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useSessionStore } from "@/hooks/useSessionStore";
 import { DiscussionSetupWizard } from "@/components/setup/DiscussionSetupWizard";
 import { CountdownTransition } from "@/components/setup/CountdownTransition";
-import { getAllReportsFromHistory } from "@/lib/storage/indexedDb";
+import { getAllReports } from "@/lib/storage/reportStorage";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
 import { GDReport } from "@/lib/types/report";
 import { Button } from "@/components/common/Button";
 import {
@@ -22,6 +23,7 @@ import {
   Zap,
   Clock,
   ShieldCheck,
+  Database,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -34,7 +36,7 @@ export default function DashboardPage() {
   const [pastReports, setPastReports] = useState<GDReport[]>([]);
 
   useEffect(() => {
-    getAllReportsFromHistory().then((data) => {
+    getAllReports().then((data) => {
       setPastReports(data.reverse());
     });
   }, []);
@@ -117,7 +119,10 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="text-2xl font-black text-slate-950">{pastReports.length} Completed</div>
-              <p className="text-[11px] text-slate-500">Stored locally in IndexedDB</p>
+              <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                <Database className="w-3 h-3 text-emerald-500 inline" />
+                <span>{isSupabaseConfigured ? "Synced with Supabase Cloud" : "Stored locally in IndexedDB"}</span>
+              </p>
             </div>
 
             <div className="bg-white border border-slate-200 p-5 rounded-3xl space-y-2 shadow-sm">
