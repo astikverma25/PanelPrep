@@ -15,8 +15,7 @@ import { saveReportToHistory } from "@/lib/storage/indexedDb";
 import { calculateDeterministicStats } from "@/lib/ai/statsCalculator";
 import { GDReport } from "@/lib/types/report";
 
-import { ArenaStage } from "@/components/room/ArenaStage";
-import { GroupChatStream } from "@/components/room/GroupChatStream";
+import { VirtualBoardroomArena } from "@/components/room/VirtualBoardroomArena";
 import { RoomControls } from "@/components/room/RoomControls";
 import { DebugOverlay } from "@/components/room/DebugOverlay";
 import { NudgeToast } from "@/components/room/NudgeToast";
@@ -594,21 +593,15 @@ export default function RoomPage() {
         </div>
       )}
 
-      {/* Stage Grid of Participants */}
-      <ArenaStage
+      {/* Virtual GD Boardroom Round-Table Arena (Moderator Head + Surrounding Candidate Desks + Center Chat) */}
+      <VirtualBoardroomArena
         personas={activePersonas}
-        activeSpeakerId={activeSpeakerId}
-        floorState={floorState}
-      />
-
-      {/* Real-Time WhatsApp-Style Auto-Scrolling Panel Chat Feed */}
-      <GroupChatStream
-        segments={segments}
         activeSpeakerId={activeSpeakerId}
         activeSpeakerName={activeSpeakerName}
         activeAiSentence={activeAiSentence}
         currentInterimTranscript={currentInterimTranscript}
         floorState={floorState}
+        segments={segments}
         topic={config.topic}
       />
 
