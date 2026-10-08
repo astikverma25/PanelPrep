@@ -53,13 +53,27 @@ export async function POST(req: NextRequest) {
       persona.cannedLines[Math.floor(Math.random() * persona.cannedLines.length)] ||
       "Let's stay focused on the key points.";
 
+    const lastTurn = turns.length > 0 ? turns[turns.length - 1] : null;
+    const isCandidate =
+      lastTurn?.speaker?.toLowerCase() === "you" ||
+      lastTurn?.speaker?.toLowerCase() === "candidate";
+
+    const lastSpeakerInfo = lastTurn
+      ? {
+          speaker: lastTurn.speaker,
+          isUser: isCandidate,
+          text: lastTurn.text,
+        }
+      : undefined;
+
     const systemPrompt = buildSystemPrompt(
       persona,
       topic,
       intent,
       time_remaining_s,
       phase,
-      own_recent
+      own_recent,
+      lastSpeakerInfo
     );
 
     const formattedTranscript = turns

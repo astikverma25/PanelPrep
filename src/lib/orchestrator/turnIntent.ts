@@ -15,10 +15,28 @@ export function selectTurnIntent(
   const lastSegment = segments[segments.length - 1];
   const lastSpeakerIsUser = lastSegment ? lastSegment.isUser : false;
 
-  // Persona specific tendencies
+  // If the candidate just spoke or interrupted, personas must directly engage with them
+  if (lastSpeakerIsUser) {
+    switch (personaId) {
+      case "arjun":
+        return "challenge"; // Directly challenge/counter the candidate
+      case "meera":
+        return "challenge"; // Challenge with analytical scrutiny or metrics
+      case "kabir":
+        return "agree_and_extend"; // Constructively validate and bridge
+      case "sana":
+        return "bring_example"; // Bring a creative real-world case supporting/extending the candidate
+      case "rohan":
+        return "agree_and_extend"; // Summarize and validate
+      default:
+        return "agree_and_extend";
+    }
+  }
+
+  // Persona specific tendencies during AI-to-AI exchanges
   switch (personaId) {
     case "arjun":
-      return lastSpeakerIsUser ? "challenge" : Math.random() > 0.4 ? "challenge" : "bring_example";
+      return Math.random() > 0.4 ? "challenge" : "bring_example";
     case "meera":
       return "bring_example";
     case "sana":

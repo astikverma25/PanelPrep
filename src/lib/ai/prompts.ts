@@ -8,11 +8,17 @@ export function buildSystemPrompt(
   intent: TurnIntent,
   timeRemainingSeconds: number,
   phase: DiscussionPhase,
-  ownRecentTurns: string[]
+  ownRecentTurns: string[],
+  lastSpeakerInfo?: { speaker: string; isUser: boolean; text: string }
 ): string {
   const mm = Math.floor(timeRemainingSeconds / 60);
   const ss = String(timeRemainingSeconds % 60).padStart(2, "0");
   const timeFormatted = `${mm}:${ss}`;
+
+  let candidateEngagementRule = "";
+  if (lastSpeakerInfo?.isUser) {
+    candidateEngagementRule = `\n- CRITICAL: The candidate ("You") just spoke/interrupted: "${lastSpeakerInfo.text}". You MUST directly respond to, address, validate, or challenge their point in character as ${persona.name}. Never ignore the candidate or continue speaking as if they were silent.`;
+  }
 
   return `You are ${persona.name}, a participant in a campus placement group discussion practice room.
 Personality: ${persona.description}
@@ -21,7 +27,7 @@ Topic: "${topic}".
 Rules:
 - Speak in natural spoken English, 1-3 short sentences, MAX 40 WORDS.
 - No markdown, no bullet lists, no emojis, no stage directions like "*nods*".
-- React naturally to what was just said. Refer to previous speakers by name when you build on or challenge them.
+- React naturally to what was just said. Refer to previous speakers by name when you build on or challenge them.${candidateEngagementRule}
 - Add a NEW point or angle. Do not repeat points already made.
 - Stay strictly in character. Do not give meta commentary about being an AI.
 - Facts: use only widely known facts. Never invent precise statistics, studies or quotes. Use hedges like "roughly" or "reports suggest" when unsure.

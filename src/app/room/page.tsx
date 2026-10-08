@@ -95,6 +95,8 @@ export default function RoomPage() {
     text: "",
     time: 0,
   });
+  const hasTriggeredTimeCheck = useRef<boolean>(false);
+  const hasTriggeredClosing = useRef<boolean>(false);
 
   // 1. Initialize Speech Engines & Floor
   useEffect(() => {
@@ -154,7 +156,7 @@ export default function RoomPage() {
     }
   }, [phase]);
 
-  // 3. Discussion Timer & Moderator Interjections
+  // 3. Discussion Timer & Moderator Interjections (Strict One-Time Guarantees)
   useEffect(() => {
     if (phase !== "discussion" && phase !== "closing") return;
 
@@ -172,9 +174,11 @@ export default function RoomPage() {
         setPhase(decision.nextPhase);
       }
 
-      if (decision.moderatorTrigger === "time_check") {
+      if (decision.moderatorTrigger === "time_check" && !hasTriggeredTimeCheck.current) {
+        hasTriggeredTimeCheck.current = true;
         triggerModeratorInterjection("time_check");
-      } else if (decision.moderatorTrigger === "closing") {
+      } else if (decision.moderatorTrigger === "closing" && !hasTriggeredClosing.current) {
+        hasTriggeredClosing.current = true;
         triggerModeratorInterjection("closing");
       }
 
@@ -187,16 +191,35 @@ export default function RoomPage() {
     return () => clearInterval(interval);
   }, [phase, timeRemainingSeconds]);
 
-  // 4. Dead-Air & Floor Bidding Monitor
+  // 4. Dead-Air & Floor Bidding Monitor with Realistic Conversational Pacing
   useEffect(() => {
     if (floorState !== "LIVE_IDLE" || phase !== "discussion") return;
 
+    // Natural conversation pause:
+    // - If student just spoke, give 3.0s pause for the room to listen & reflect.
+    // - If AI just spoke, wait 4.0s (1st turn) to 7.0s (consecutive turns) so student has wide room to take the floor.
+    const lastSegment = segments.length > 0 ? segments[segments.length - 1] : null;
+    const isLastSpeakerUser = lastSegment?.isUser;
+
+    let pauseMs = 3500;
+    if (isLastSpeakerUser) {
+      pauseMs = 3000;
+    } else {
+      if (consecutiveAiTurns >= 3) {
+        pauseMs = 7000; // Open floor invitation window
+      } else if (consecutiveAiTurns === 2) {
+        pauseMs = 5200;
+      } else {
+        pauseMs = 4200;
+      }
+    }
+
     const biddingTimeout = setTimeout(() => {
       runBiddingAndTriggerAiSpeaker();
-    }, 1800); // 1.8s pause triggers AI bidding
+    }, pauseMs);
 
     return () => clearTimeout(biddingTimeout);
-  }, [floorState, phase, segments]);
+  }, [floorState, phase, segments, consecutiveAiTurns]);
 
   // Instant Barge-In (<150ms)
   const handleUserSpeechDetected = () => {
@@ -220,6 +243,7 @@ export default function RoomPage() {
 
     setFloorState("STUDENT_SPEAKING");
     setActiveSpeakerId("user");
+    setActiveAiSentence(null);
     userUtteranceStartMs.current = Date.now();
   };
 
@@ -379,9 +403,14 @@ export default function RoomPage() {
     setFloorState("AI_THINKING");
     setActiveSpeakerId(persona.id);
 
+    // Realistic human formulation/thinking pause before speaking
+    await new Promise((r) => setTimeout(r, 1200));
+
     try {
       const controller = new AbortController();
       activeAbortController.current = controller;
+
+      if (controller.signal.aborted) return;
 
       const res = await fetch("/api/turn", {
         method: "POST",
@@ -412,6 +441,7 @@ export default function RoomPage() {
       setFloorState("AI_SPEAKING");
 
       while (true) {
+        if (controller.signal.aborted) break;
         const { done, value } = await reader.read();
         if (done) break;
 
@@ -419,6 +449,7 @@ export default function RoomPage() {
         const lines = chunk.split("\n");
 
         for (const line of lines) {
+          if (controller.signal.aborted) break;
           if (line.startsWith("data: ")) {
             try {
               const data = JSON.parse(line.slice(6));
@@ -428,6 +459,8 @@ export default function RoomPage() {
 
                 if (ttsRef.current) {
                   await ttsRef.current.speak(data.sentence, persona);
+                  // Natural subtle breathing pause between sentences
+                  await new Promise((r) => setTimeout(r, 350));
                 }
               }
             } catch {}
@@ -435,7 +468,7 @@ export default function RoomPage() {
         }
       }
 
-      if (fullSpeech.trim()) {
+      if (fullSpeech.trim() && !controller.signal.aborted) {
         const now = Date.now();
         const relativeEnd = Math.max(3000, now - sessionStartMs.current);
         const segId = `u_${String(segmentIdCounter.current++).padStart(3, "0")}`;
@@ -449,6 +482,9 @@ export default function RoomPage() {
           text: fullSpeech.trim(),
           interrupted: false,
         });
+
+        // Floor release buffer before reverting to idle
+        await new Promise((r) => setTimeout(r, 1000));
       }
 
       setFloorState("LIVE_IDLE");

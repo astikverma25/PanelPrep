@@ -271,18 +271,24 @@ export const VirtualBoardroomArena: React.FC<VirtualBoardroomArenaProps> = ({
           <div
             className={`w-full max-w-xl bg-white border-2 rounded-3xl p-4 transition-all shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 ${
               isUserSpeaking
-                ? "border-emerald-500 bg-emerald-50/80 shadow-emerald-500/20 ring-4 ring-emerald-400/30 scale-[1.02]"
-                : "border-emerald-300 hover:border-emerald-400"
+                ? "border-emerald-500 bg-gradient-to-r from-emerald-50 via-teal-50/60 to-emerald-50 shadow-xl shadow-emerald-500/25 ring-4 ring-emerald-400/40 scale-[1.02]"
+                : "border-emerald-300/80 hover:border-emerald-400"
             }`}
           >
             {/* Candidate Identity & Hot Seat Desk Badge */}
             <div className="flex items-center gap-3.5">
               <div className="relative">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-xl font-black shadow-md">
+                <div
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shadow-md transition-all ${
+                    isUserSpeaking
+                      ? "bg-emerald-600 ring-4 ring-emerald-300 animate-pulse"
+                      : "bg-emerald-700"
+                  }`}
+                >
                   YOU
                 </div>
                 {isUserSpeaking && (
-                  <div className="absolute -bottom-1 -right-1 bg-emerald-700 text-white p-1 rounded-full shadow-md animate-bounce">
+                  <div className="absolute -bottom-1 -right-1 bg-emerald-600 text-white p-1 rounded-full shadow-md animate-bounce ring-2 ring-white">
                     <Mic className="w-3.5 h-3.5" />
                   </div>
                 )}
@@ -306,9 +312,13 @@ export const VirtualBoardroomArena: React.FC<VirtualBoardroomArenaProps> = ({
             {/* Speaking Live Indicator & Hot Seat Pressure Tracker */}
             <div className="flex items-center gap-3">
               {isUserSpeaking ? (
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-md animate-pulse">
-                  <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-                  <span>Floor Captured &bull; Speaking</span>
+                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-600 text-white text-xs font-bold shadow-md animate-pulse">
+                  <div className="flex items-center gap-0.5">
+                    <span className="w-1 h-3 bg-white rounded-full animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-1 h-4.5 bg-white rounded-full animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-1 h-2 bg-white rounded-full animate-bounce" />
+                  </div>
+                  <span>You Are Speaking Live</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-800 bg-emerald-100/70 border border-emerald-300 px-3 py-1.5 rounded-full">

@@ -44,33 +44,41 @@ export function calculateBids(input: BiddingInput): BidResult {
       continue;
     }
 
+    // Base score from persona talkativeness
     let score = persona.talkativeness;
 
-    // 1. Direct Name Address Check (+2.0)
+    // 1. Strict Back-to-Back Lockout (-50) to prevent same AI from speaking twice in a row
+    if (lastSegment && lastSegment.speakerId === persona.id) {
+      score -= 50;
+    }
+
+    // 2. Direct Name Address Boost (+2.5)
     if (lastSegment && lastSegment.text.toLowerCase().includes(persona.name.toLowerCase())) {
-      score += 2.0;
+      score += 2.5;
     }
 
-    // 2. Time Since Last Spoke (+0.3 * sec, capped at +3.0)
+    // 3. Time Since Last Spoke (+0.2 * sec, capped at +2.5)
     const lastSpokeSegment = [...segments].reverse().find((s) => s.speakerId === persona.id);
-    const secondsSinceLastSpoke = lastSpokeSegment
-      ? Math.max(0, (currentTimestamp - lastSpokeSegment.endMs) / 1000)
-      : 15; // default 15s if hasn't spoken yet
-    score += Math.min(3.0, 0.3 * secondsSinceLastSpoke);
-
-    // 3. Penalty if spoke in the last turn (-1.5)
-    if (lastFloorSpeakerId === persona.id) {
-      score -= 1.5;
+    let secondsSinceLastSpoke = 15;
+    if (lastSpokeSegment) {
+      const diffMs =
+        currentTimestamp > 1000000000 && lastSpokeSegment.endMs < 1000000000
+          ? (currentTimestamp % 3600000) - (lastSpokeSegment.endMs % 3600000)
+          : currentTimestamp - lastSpokeSegment.endMs;
+      secondsSinceLastSpoke = Math.max(0, Math.min(60, Math.abs(diffMs) / 1000));
     }
+    score += Math.min(2.5, 0.2 * secondsSinceLastSpoke);
 
-    // 4. Penalty if spoke twice in the last 4 turns (-0.8)
+    // 4. Heavy Penalty if spoke in recent turns
     const recentTurnsCount = last4Segments.filter((s) => s.speakerId === persona.id).length;
     if (recentTurnsCount >= 2) {
-      score -= 0.8;
+      score -= 3.0;
+    } else if (recentTurnsCount === 1) {
+      score -= 1.2;
     }
 
-    // 5. Random Jitter (0 to 0.4) for natural variety
-    score += Math.random() * 0.4;
+    // 5. Random Jitter (0 to 0.3) for natural organic variety
+    score += Math.random() * 0.3;
 
     scores[persona.id] = Number(score.toFixed(2));
 
