@@ -1,13 +1,21 @@
-"use client";
-
 import React, { useState } from "react";
-import { Mic, MicOff, PhoneOff, Send, FastForward } from "lucide-react";
+import {
+  Mic,
+  MicOff,
+  PhoneOff,
+  Send,
+  FastForward,
+  Maximize2,
+  Minimize2,
+} from "lucide-react";
 import { Button } from "../common/Button";
 
 interface RoomControlsProps {
   isMuted: boolean;
   isTextMode: boolean;
+  isFullscreen?: boolean;
   onToggleMute: () => void;
+  onToggleFullscreen?: () => void;
   onLeaveRoom: () => void;
   onFastForwardDemo?: () => void;
   onSendTextMessage: (text: string) => void;
@@ -16,7 +24,9 @@ interface RoomControlsProps {
 export const RoomControls: React.FC<RoomControlsProps> = ({
   isMuted,
   isTextMode,
+  isFullscreen = false,
   onToggleMute,
+  onToggleFullscreen,
   onLeaveRoom,
   onFastForwardDemo,
   onSendTextMessage,
@@ -78,6 +88,28 @@ export const RoomControls: React.FC<RoomControlsProps> = ({
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+        {onToggleFullscreen && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToggleFullscreen}
+            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+            className="rounded-full text-xs"
+          >
+            {isFullscreen ? (
+              <>
+                <Minimize2 className="w-3.5 h-3.5 text-slate-700" />
+                <span className="hidden sm:inline">Exit Fullscreen</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-3.5 h-3.5 text-slate-700" />
+                <span className="hidden sm:inline">Fullscreen</span>
+              </>
+            )}
+          </Button>
+        )}
+
         {onFastForwardDemo && (
           <Button
             variant="outline"

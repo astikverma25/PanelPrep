@@ -19,7 +19,14 @@ import { VirtualBoardroomArena } from "@/components/room/VirtualBoardroomArena";
 import { RoomControls } from "@/components/room/RoomControls";
 import { DebugOverlay } from "@/components/room/DebugOverlay";
 import { NudgeToast } from "@/components/room/NudgeToast";
-import { Clock, ShieldAlert, Sparkles, Volume2 } from "lucide-react";
+import {
+  Clock,
+  ShieldAlert,
+  Sparkles,
+  Volume2,
+  Maximize2,
+  Minimize2,
+} from "lucide-react";
 
 export default function RoomPage() {
   const router = useRouter();
@@ -47,10 +54,34 @@ export default function RoomPage() {
   } = useSessionStore();
 
   const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [biddingScores, setBiddingScores] = useState<Record<string, number>>({});
   const [nudgeMessage, setNudgeMessage] = useState<string | null>(null);
   const [prepCountdown, setPrepCountdown] = useState<number>(20);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
+  // Fullscreen change listener
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  const handleToggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.warn("Fullscreen request error:", err);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch((err) => {
+          console.warn("Exit fullscreen error:", err);
+        });
+      }
+    }
+  };
 
   // Audio & speech services refs
   const sttRef = useRef<STTService | null>(null);
@@ -572,11 +603,29 @@ export default function RoomPage() {
           </h2>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <div className="flex items-center gap-2 bg-slate-100 px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-mono font-bold text-slate-900">
             <Clock className="w-4 h-4 text-blue-600" />
             <span>{formatTimer(timeRemainingSeconds)}</span>
           </div>
+
+          <button
+            onClick={handleToggleFullscreen}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-semibold text-slate-700 hover:text-slate-950 transition-colors cursor-pointer"
+            title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+          >
+            {isFullscreen ? (
+              <>
+                <Minimize2 className="w-3.5 h-3.5 text-slate-700" />
+                <span className="hidden sm:inline">Exit Fullscreen</span>
+              </>
+            ) : (
+              <>
+                <Maximize2 className="w-3.5 h-3.5 text-slate-700" />
+                <span className="hidden sm:inline">Fullscreen</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
@@ -609,7 +658,9 @@ export default function RoomPage() {
       <RoomControls
         isMuted={isMuted}
         isTextMode={config.isTextFallback}
+        isFullscreen={isFullscreen}
         onToggleMute={handleToggleMute}
+        onToggleFullscreen={handleToggleFullscreen}
         onLeaveRoom={handleEndDiscussion}
         onFastForwardDemo={() => {
           setTimeRemaining(30);
