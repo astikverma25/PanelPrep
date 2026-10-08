@@ -27,16 +27,16 @@ export const HowItWorks: React.FC = () => {
   ];
 
   return (
-    <section className="py-16 md:py-24 border-t border-slate-800/80">
+    <section className="py-16 md:py-24 border-t border-slate-200 bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 space-y-12">
         <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+          <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
             Frictionless 3-Step Workflow
           </span>
-          <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-            How GD Arena Works
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
+            How PanelPrep Works
           </h2>
-          <p className="text-sm text-slate-400 leading-relaxed">
+          <p className="text-sm text-slate-600 leading-relaxed">
             Zero complicated setup. Open the URL on any laptop or mobile browser and start practicing immediately.
           </p>
         </div>
@@ -47,21 +47,21 @@ export const HowItWorks: React.FC = () => {
             return (
               <div
                 key={i}
-                className="bg-slate-900/60 border border-slate-800 p-8 rounded-3xl space-y-4 relative flex flex-col justify-between"
+                className="bg-white border border-slate-200 hover:border-slate-300 p-8 rounded-3xl space-y-4 relative flex flex-col justify-between shadow-sm hover:shadow-md transition-all"
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-2xl font-black text-slate-700 font-mono">
+                    <span className="text-2xl font-black text-slate-300 font-mono">
                       {s.step}
                     </span>
-                    <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 border border-blue-100">
                       <Icon className="w-6 h-6" />
                     </div>
                   </div>
-                  <h3 className="text-base font-bold text-white mb-2">
+                  <h3 className="text-base font-bold text-slate-900 mb-2">
                     {s.title}
                   </h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">
+                  <p className="text-xs text-slate-600 leading-relaxed">
                     {s.description}
                   </p>
                 </div>

@@ -4,16 +4,22 @@ import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
 
 export const metadata: Metadata = {
-  title: "GD Arena - Voice-First AI Group Discussion Room",
+  title: "PANELPREP - Voice-First AI Group Discussion & Placement Room",
   description:
-    "Sit in a realistic campus placement group discussion room with 3-5 AI participants and a moderator. Receive evidence-backed rubric feedback quoting exact moments from your transcript.",
+    "Sit in a realistic campus placement group discussion room with 3-5 AI participants and an active moderator. Receive evidence-backed rubric feedback quoting exact moments from your transcript.",
   keywords: [
-    "Group Discussion",
-    "GD Practice",
+    "PanelPrep",
+    "Group Discussion Practice",
     "Campus Placements",
-    "Voice AI",
+    "Voice AI GD",
     "Interview Preparation",
+    "Turn Taking AI",
   ],
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/favicon.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -22,8 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen flex flex-col bg-arena-dark text-slate-100 antialiased selection:bg-blue-600/30 selection:text-blue-200">
+    <html lang="en">
+      <body className="min-h-screen flex flex-col bg-slate-50 text-slate-900 antialiased selection:bg-slate-900 selection:text-white">
         <Header />
         <main className="flex-1 flex flex-col">{children}</main>
         <Footer />

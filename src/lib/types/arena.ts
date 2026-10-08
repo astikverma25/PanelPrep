@@ -33,6 +33,7 @@ export interface UtteranceSegment {
 export interface SessionConfig {
   topic: string;
   panelSize: number; // 3, 4, 5
+  selectedPersonaIds?: string[];
   durationMinutes: number; // 5, 8, 10
   patienceMs: number; // 600 - 2500 ms (default: 1200ms)
   isTextFallback: boolean;

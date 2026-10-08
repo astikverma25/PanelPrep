@@ -73,9 +73,20 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
     set((state) => {
       const merged = { ...state.config, ...newConfig };
       const panelSize = merged.panelSize || 3;
-      const personaList = [PERSONAS.moderator, PERSONAS.arjun, PERSONAS.meera, PERSONAS.kabir];
-      if (panelSize >= 4) personaList.push(PERSONAS.sana);
-      if (panelSize >= 5) personaList.push(PERSONAS.rohan);
+      
+      let personaList: PersonaProfile[] = [PERSONAS.moderator];
+      if (merged.selectedPersonaIds && merged.selectedPersonaIds.length > 0) {
+        for (const id of merged.selectedPersonaIds) {
+          if (PERSONAS[id] && id !== "moderator") {
+            personaList.push(PERSONAS[id]);
+          }
+        }
+      } else {
+        // Default fallback selection
+        personaList.push(PERSONAS.arjun, PERSONAS.meera, PERSONAS.kabir);
+        if (panelSize >= 4) personaList.push(PERSONAS.sana);
+        if (panelSize >= 5) personaList.push(PERSONAS.rohan);
+      }
 
       const durationSec = (merged.durationMinutes || 5) * 60;
 
@@ -95,7 +106,17 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setInterimTranscript: (currentInterimTranscript) => set({ currentInterimTranscript }),
   setActiveAiSentence: (activeAiSentence) => set({ activeAiSentence }),
   addSegment: (segment) =>
-    set((state) => ({ segments: [...state.segments, segment] })),
+    set((state) => {
+      const last = state.segments[state.segments.length - 1];
+      if (
+        last &&
+        last.speakerId === segment.speakerId &&
+        last.text.trim().toLowerCase() === segment.text.trim().toLowerCase()
+      ) {
+        return state; // Duplicate prevented
+      }
+      return { segments: [...state.segments, segment] };
+    }),
   setReport: (report) => set({ report }),
 
   resetSession: () =>

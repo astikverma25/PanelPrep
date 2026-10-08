@@ -6,23 +6,26 @@ const config: Config = {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  darkMode: "class",
   theme: {
     extend: {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
         arena: {
-          dark: "#090D16",
-          card: "#121826",
-          border: "#1F293D",
-          accent: "#3B82F6",
-          glow: "#60A5FA",
+          dark: "#F8FAFC",
+          card: "#FFFFFF",
+          border: "#E2E8F0",
+          accent: "#0F172A",
+          glow: "#3B82F6",
           speaking: "#10B981",
           warning: "#F59E0B",
           danger: "#EF4444",
-          muted: "#94A3B8",
+          muted: "#64748B",
         },
+      },
+      boxShadow: {
+        "subtle": "0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03)",
+        "card": "0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.03)",
       },
       animation: {
         "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
@@ -35,8 +38,8 @@ const config: Config = {
           "50%": { height: "24px" },
         },
         glowSpeaking: {
-          "0%, 100%": { boxShadow: "0 0 15px rgba(16, 185, 129, 0.4)" },
-          "50%": { boxShadow: "0 0 30px rgba(16, 185, 129, 0.8)" },
+          "0%, 100%": { boxShadow: "0 0 15px rgba(16, 185, 129, 0.3)" },
+          "50%": { boxShadow: "0 0 25px rgba(16, 185, 129, 0.6)" },
         },
       },
     },

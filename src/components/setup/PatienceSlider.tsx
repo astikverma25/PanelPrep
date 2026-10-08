@@ -20,13 +20,13 @@ export const PatienceSlider: React.FC<PatienceSliderProps> = ({
   };
 
   return (
-    <div className="space-y-3 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+    <div className="space-y-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-          <Sliders className="w-3.5 h-3.5 text-blue-400" />
+        <label className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+          <Sliders className="w-3.5 h-3.5 text-blue-600" />
           AI Silence Patience (End-of-Turn Gap)
         </label>
-        <span className="text-xs font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+        <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
           {(patienceMs / 1000).toFixed(1)}s &bull; {getPatienceLabel(patienceMs)}
         </span>
       </div>
@@ -38,10 +38,10 @@ export const PatienceSlider: React.FC<PatienceSliderProps> = ({
         step={100}
         value={patienceMs}
         onChange={(e) => onChangePatience(Number(e.target.value))}
-        className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500"
+        className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-950"
       />
 
-      <div className="flex justify-between text-[10px] text-slate-400">
+      <div className="flex justify-between text-[10px] text-slate-500">
         <span>0.6s (Fast Cut-in)</span>
         <span>1.2s (Default)</span>
         <span>2.5s (Shy Panel)</span>

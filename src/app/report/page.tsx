@@ -9,7 +9,16 @@ import { DimensionCard } from "@/components/report/DimensionCard";
 import { MissedOpenings } from "@/components/report/MissedOpenings";
 import { InteractiveTranscript } from "@/components/report/InteractiveTranscript";
 import { Button } from "@/components/common/Button";
-import { Sparkles, Trophy, RotateCcw, Home, CheckCircle2, ArrowUpRight } from "lucide-react";
+import {
+  Sparkles,
+  Trophy,
+  RotateCcw,
+  Home,
+  CheckCircle2,
+  ArrowUpRight,
+  ArrowLeft,
+  History,
+} from "lucide-react";
 
 export default function ReportPage() {
   const router = useRouter();
@@ -26,48 +35,81 @@ export default function ReportPage() {
 
   const handleStartNew = () => {
     resetSession();
-    router.push("/");
+    router.push("/dashboard");
   };
 
   if (!report) {
     return (
       <div className="flex-1 max-w-4xl mx-auto px-4 py-16 flex flex-col items-center justify-center text-center space-y-4">
-        <div className="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-          <Sparkles className="w-6 h-6 text-blue-400" />
+        <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center">
+          <Sparkles className="w-6 h-6 text-blue-600" />
         </div>
-        <h2 className="text-xl font-bold text-white">No Active Session Report Found</h2>
-        <p className="text-sm text-slate-400 max-w-md">
+        <h2 className="text-xl font-bold text-slate-950">No Active Session Report Found</h2>
+        <p className="text-sm text-slate-600 max-w-md">
           Complete a group discussion session first to generate evidence-backed coaching analytics.
         </p>
-        <Button variant="primary" onClick={() => router.push("/")}>
-          <Home className="w-4 h-4" />
-          Go to Setup
-        </Button>
+        <div className="flex items-center gap-3 pt-2">
+          <Button variant="outline" onClick={() => router.push("/dashboard/history")}>
+            <History className="w-4 h-4" />
+            <span>Practice History</span>
+          </Button>
+          <Button variant="primary" onClick={() => router.push("/dashboard")}>
+            <Home className="w-4 h-4" />
+            <span>Go to Dashboard</span>
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full space-y-8">
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-arena-card border border-arena-border p-6 rounded-3xl shadow-xl">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-bold text-emerald-400 mb-1">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            GD Evaluation Complete &bull; Evidence Verified
+      {/* Header Banner with Back to History Button */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-slate-200 p-6 rounded-3xl shadow-sm">
+        <div className="flex items-start gap-3.5">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push("/dashboard/history")}
+            className="rounded-full !p-2.5 shrink-0 mt-1 hover:bg-slate-100 cursor-pointer shadow-2xs border-slate-200"
+            title="Back to History"
+          >
+            <ArrowLeft className="w-4 h-4 text-slate-700" />
+          </Button>
+
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-700 mb-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              GD Evaluation Saved to History &bull; Evidence Verified
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight">
+              Performance Analysis & Transcript Review
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 line-clamp-1">
+              Topic: &ldquo;{report.topic}&rdquo; &bull; {Math.round(report.durationSeconds / 60)} min session
+            </p>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-            Performance Analysis & Transcript Review
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-400 line-clamp-1">
-            Topic: &ldquo;{report.topic}&rdquo; &bull; {Math.round(report.durationSeconds / 60)} min session
-          </p>
         </div>
 
         <div className="flex items-center gap-2.5">
-          <Button variant="secondary" size="md" onClick={handleStartNew}>
+          <Button
+            variant="outline"
+            size="md"
+            onClick={() => router.push("/dashboard/history")}
+            className="rounded-full font-semibold cursor-pointer"
+          >
+            <History className="w-4 h-4 text-slate-600" />
+            <span className="hidden sm:inline">Practice History</span>
+          </Button>
+
+          <Button
+            variant="primary"
+            size="md"
+            onClick={handleStartNew}
+            className="rounded-full font-semibold cursor-pointer"
+          >
             <RotateCcw className="w-4 h-4" />
-            New Practice Round
+            <span>New Practice</span>
           </Button>
         </div>
       </div>
@@ -80,10 +122,10 @@ export default function ReportPage() {
 
       {/* Top 3 Actionable Takeaways */}
       {report.top_3_actions && report.top_3_actions.length > 0 && (
-        <div className="bg-blue-950/20 border border-blue-800/40 rounded-2xl p-6 space-y-3">
+        <div className="bg-blue-50/50 border border-blue-200 rounded-2xl p-6 space-y-3">
           <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-blue-400" />
-            <h3 className="text-sm font-bold text-white">
+            <Trophy className="w-5 h-5 text-blue-600" />
+            <h3 className="text-sm font-bold text-slate-900">
               Top 3 Key Action Steps for Your Next Placement GD
             </h3>
           </div>
@@ -91,9 +133,9 @@ export default function ReportPage() {
             {report.top_3_actions.map((act, idx) => (
               <div
                 key={idx}
-                className="bg-slate-900/80 border border-slate-800 p-3.5 rounded-xl text-xs text-slate-200 flex items-start gap-2.5"
+                className="bg-white border border-slate-200 p-3.5 rounded-xl text-xs text-slate-800 flex items-start gap-2.5 shadow-sm"
               >
-                <span className="w-5 h-5 rounded-full bg-blue-500/20 text-blue-400 font-bold flex items-center justify-center shrink-0 text-[10px]">
+                <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold flex items-center justify-center shrink-0 text-[10px]">
                   {idx + 1}
                 </span>
                 <span className="leading-relaxed">{act}</span>
@@ -111,8 +153,8 @@ export default function ReportPage() {
 
       {/* 6 Rubric Dimensions Grid */}
       <div className="space-y-4">
-        <h3 className="text-base font-bold text-white flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-blue-400" />
+        <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-blue-600" />
           6-Dimension Rubric Breakdown
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

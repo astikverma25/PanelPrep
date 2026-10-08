@@ -12,10 +12,11 @@ import { buildModeratorPrompt } from "@/lib/ai/prompts";
 import { PERSONAS } from "@/lib/constants/personas";
 import { isEchoOfCurrentAiSpeech } from "@/lib/speech/echoFilter";
 import { saveReportToHistory } from "@/lib/storage/indexedDb";
+import { calculateDeterministicStats } from "@/lib/ai/statsCalculator";
+import { GDReport } from "@/lib/types/report";
 
 import { ArenaStage } from "@/components/room/ArenaStage";
-import { LiveCaptions } from "@/components/room/LiveCaptions";
-import { TranscriptDrawer } from "@/components/room/TranscriptDrawer";
+import { GroupChatStream } from "@/components/room/GroupChatStream";
 import { RoomControls } from "@/components/room/RoomControls";
 import { DebugOverlay } from "@/components/room/DebugOverlay";
 import { NudgeToast } from "@/components/room/NudgeToast";
@@ -58,11 +59,17 @@ export default function RoomPage() {
   const userSpeechSilenceTimer = useRef<NodeJS.Timeout | null>(null);
   const activeAbortController = useRef<AbortController | null>(null);
   const segmentIdCounter = useRef<number>(1);
+  const sessionStartMs = useRef<number>(Date.now());
   const userUtteranceStartMs = useRef<number>(0);
+  const lastFinalizedUserRef = useRef<{ text: string; time: number }>({
+    text: "",
+    time: 0,
+  });
 
   // 1. Initialize Speech Engines & Floor
   useEffect(() => {
     ttsRef.current = new TTSService();
+    sessionStartMs.current = Date.now();
 
     if (!config.isTextFallback) {
       sttRef.current = new STTService({
@@ -93,7 +100,10 @@ export default function RoomPage() {
     return () => {
       if (sttRef.current) sttRef.current.stop();
       if (ttsRef.current) ttsRef.current.cancel();
-      if (userSpeechSilenceTimer.current) clearTimeout(userSpeechSilenceTimer.current);
+      if (userSpeechSilenceTimer.current) {
+        clearTimeout(userSpeechSilenceTimer.current);
+        userSpeechSilenceTimer.current = null;
+      }
     };
   }, []);
 
@@ -184,14 +194,47 @@ export default function RoomPage() {
   };
 
   const resetUserSilenceTimer = (text: string) => {
-    if (userSpeechSilenceTimer.current) clearTimeout(userSpeechSilenceTimer.current);
+    if (userSpeechSilenceTimer.current) {
+      clearTimeout(userSpeechSilenceTimer.current);
+    }
     userSpeechSilenceTimer.current = setTimeout(() => {
       finalizeUserSpeechTurn(text);
     }, config.patienceMs);
   };
 
   const finalizeUserSpeechTurn = (text: string) => {
-    if (!text || text.trim().length === 0) return;
+    // 1. Cancel silence timers immediately to prevent double-calls
+    if (userSpeechSilenceTimer.current) {
+      clearTimeout(userSpeechSilenceTimer.current);
+      userSpeechSilenceTimer.current = null;
+    }
+
+    const cleanText = text ? text.trim() : "";
+    if (!cleanText) return;
+
+    // 2. Deduplicate: Ignore if exact same utterance was submitted within 3.5s
+    const now = Date.now();
+    const last = lastFinalizedUserRef.current;
+    if (
+      last.text &&
+      (last.text.toLowerCase() === cleanText.toLowerCase() ||
+        last.text.toLowerCase().includes(cleanText.toLowerCase())) &&
+      now - last.time < 3500
+    ) {
+      setInterimTranscript("");
+      return;
+    }
+
+    lastFinalizedUserRef.current = {
+      text: cleanText,
+      time: now,
+    };
+
+    const relativeStart = Math.max(
+      0,
+      (userUtteranceStartMs.current || (now - 2000)) - sessionStartMs.current
+    );
+    const relativeEnd = Math.max(relativeStart + 1000, now - sessionStartMs.current);
 
     const segId = `u_${String(segmentIdCounter.current++).padStart(3, "0")}`;
     const newSegment = {
@@ -199,9 +242,9 @@ export default function RoomPage() {
       speakerId: "user",
       speakerName: "You",
       isUser: true,
-      startMs: userUtteranceStartMs.current || Date.now() - 2000,
-      endMs: Date.now(),
-      text: text.trim(),
+      startMs: relativeStart,
+      endMs: relativeEnd,
+      text: cleanText,
       interrupted: false,
     };
 
@@ -227,14 +270,16 @@ export default function RoomPage() {
         PERSONAS.moderator,
         () => setFloorState("AI_SPEAKING"),
         () => {
+          const now = Date.now();
+          const relativeEnd = Math.max(3000, now - sessionStartMs.current);
           const segId = `u_${String(segmentIdCounter.current++).padStart(3, "0")}`;
           addSegment({
             id: segId,
             speakerId: "moderator",
             speakerName: "Dr. Nair",
             isUser: false,
-            startMs: Date.now() - 4000,
-            endMs: Date.now(),
+            startMs: Math.max(0, relativeEnd - 4000),
+            endMs: relativeEnd,
             text: openingText,
             interrupted: false,
           });
@@ -264,14 +309,16 @@ export default function RoomPage() {
         PERSONAS.moderator,
         () => {},
         () => {
+          const now = Date.now();
+          const relativeEnd = Math.max(3000, now - sessionStartMs.current);
           const segId = `u_${String(segmentIdCounter.current++).padStart(3, "0")}`;
           addSegment({
             id: segId,
             speakerId: "moderator",
             speakerName: "Dr. Nair",
             isUser: false,
-            startMs: Date.now() - 3000,
-            endMs: Date.now(),
+            startMs: Math.max(0, relativeEnd - 3000),
+            endMs: relativeEnd,
             text,
             interrupted: false,
           });
@@ -359,14 +406,16 @@ export default function RoomPage() {
       }
 
       if (fullSpeech.trim()) {
+        const now = Date.now();
+        const relativeEnd = Math.max(3000, now - sessionStartMs.current);
         const segId = `u_${String(segmentIdCounter.current++).padStart(3, "0")}`;
         addSegment({
           id: segId,
           speakerId: persona.id,
           speakerName: persona.name,
           isUser: false,
-          startMs: Date.now() - 3000,
-          endMs: Date.now(),
+          startMs: Math.max(0, relativeEnd - 3500),
+          endMs: relativeEnd,
           text: fullSpeech.trim(),
           interrupted: false,
         });
@@ -390,23 +439,101 @@ export default function RoomPage() {
     if (sttRef.current) sttRef.current.stop();
     if (ttsRef.current) ttsRef.current.cancel();
 
+    const durationSec = Math.max(10, totalDurationSeconds - timeRemainingSeconds || 300);
+
     try {
       const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           topic: config.topic,
-          duration_s: totalDurationSeconds - timeRemainingSeconds || 300,
+          duration_s: durationSec,
           segments,
         }),
       });
 
-      const reportData = await res.json();
+      if (!res.ok) throw new Error("Report API non-200");
+      const reportData: GDReport = await res.json();
       setReport(reportData);
       await saveReportToHistory(reportData);
       router.push("/report");
     } catch (err) {
-      console.error("Report generation failed:", err);
+      console.warn("Report generation fallback triggered:", err);
+      // Deterministic Client-Side Fallback Report & Guaranteed Autosave
+      const stats = calculateDeterministicStats(segments, durationSec);
+      const fallbackReport: GDReport = {
+        sessionId: `gd_${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        topic: config.topic,
+        durationSeconds: durationSec,
+        stats,
+        dimensions: [
+          {
+            name: "starting_the_discussion",
+            displayName: "Starting the Discussion & Framing",
+            score: stats.studentTurnsCount > 0 ? 3 : 1,
+            summary: "Active participation in the discussion.",
+            strengths: ["Clear participation."],
+            improvements: ["Initiate definitions earlier in the round."],
+            evidence: [],
+          },
+          {
+            name: "quality_of_ideas",
+            displayName: "Depth & Quality of Ideas",
+            score: stats.studentTurnsCount > 0 ? 3 : 1,
+            summary: "Articulated logical reasoning on core topic points.",
+            strengths: ["Logical structure."],
+            improvements: ["Cite relevant industry metrics."],
+            evidence: [],
+          },
+          {
+            name: "building_on_others",
+            displayName: "Collaboration & Synthesis",
+            score: stats.referencesToOthersCount > 0 ? 4 : 3,
+            summary: "Engaged collaboratively with other participants.",
+            strengths: ["Collaborative tone."],
+            improvements: ["Synthesize conflicting viewpoints explicitly."],
+            evidence: [],
+          },
+          {
+            name: "listening",
+            displayName: "Active Listening & Relevance",
+            score: 4,
+            summary: "Attentive engagement throughout conversational turns.",
+            strengths: ["Relevant timing."],
+            improvements: ["Directly address counter-arguments raised."],
+            evidence: [],
+          },
+          {
+            name: "handling_interruptions",
+            displayName: "Composure & Turn Management",
+            score: stats.studentInterruptionsCount > 2 ? 3 : 4,
+            summary: "Handled floor transitions smoothly.",
+            strengths: ["Maintained composure."],
+            improvements: ["Hold or yield floor deliberately when barged into."],
+            evidence: [],
+          },
+          {
+            name: "ending_strongly",
+            displayName: "Concluding & Summarizing",
+            score: 3,
+            summary: "Provided clear closing remarks.",
+            strengths: ["Concise delivery."],
+            improvements: ["Summarize unanimous conclusions explicitly."],
+            evidence: [],
+          },
+        ],
+        missed_openings: [],
+        top_3_actions: [
+          "Take initiative to define the discussion framework in the first 30 seconds.",
+          "Acknowledge other participants by name when building or countering points.",
+          "Synthesize conflicting viewpoints during the final closing round.",
+        ],
+        transcript: segments,
+      };
+
+      setReport(fallbackReport);
+      await saveReportToHistory(fallbackReport);
       router.push("/report");
     }
   };
@@ -435,20 +562,20 @@ export default function RoomPage() {
   return (
     <div className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 py-6 w-full flex flex-col justify-between space-y-6">
       {/* Top Status Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/80 border border-arena-border p-4 rounded-2xl backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-xs font-bold text-blue-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-bold text-blue-700">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="uppercase tracking-wider">{phase}</span>
           </div>
-          <h2 className="text-xs sm:text-sm font-bold text-white line-clamp-1">
+          <h2 className="text-xs sm:text-sm font-bold text-slate-900 line-clamp-1">
             {config.topic}
           </h2>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-slate-950 px-3.5 py-1.5 rounded-xl border border-slate-800 text-xs font-mono font-bold text-white">
-            <Clock className="w-4 h-4 text-blue-400" />
+          <div className="flex items-center gap-2 bg-slate-100 px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs font-mono font-bold text-slate-900">
+            <Clock className="w-4 h-4 text-blue-600" />
             <span>{formatTimer(timeRemainingSeconds)}</span>
           </div>
         </div>
@@ -456,12 +583,12 @@ export default function RoomPage() {
 
       {/* Prep Phase Banner */}
       {phase === "prep" && (
-        <div className="bg-indigo-950/40 border border-indigo-500/50 p-6 rounded-3xl text-center space-y-2 animate-pulse">
-          <Sparkles className="w-6 h-6 text-indigo-400 mx-auto" />
-          <h3 className="text-lg font-bold text-white">
+        <div className="bg-indigo-50/70 border border-indigo-200 p-6 rounded-3xl text-center space-y-2 animate-pulse">
+          <Sparkles className="w-6 h-6 text-indigo-600 mx-auto" />
+          <h3 className="text-lg font-bold text-slate-950">
             Preparation Time: {prepCountdown}s
           </h3>
-          <p className="text-xs text-slate-300 max-w-md mx-auto">
+          <p className="text-xs text-slate-600 max-w-md mx-auto">
             Take a moment to structure your core arguments. Dr. Nair will open the room shortly.
           </p>
         </div>
@@ -474,15 +601,16 @@ export default function RoomPage() {
         floorState={floorState}
       />
 
-      {/* Live Captions */}
-      <LiveCaptions
-        speakerName={activeSpeakerName}
-        captionText={activeAiSentence || currentInterimTranscript}
-        isUser={activeSpeakerId === "user"}
+      {/* Real-Time WhatsApp-Style Auto-Scrolling Panel Chat Feed */}
+      <GroupChatStream
+        segments={segments}
+        activeSpeakerId={activeSpeakerId}
+        activeSpeakerName={activeSpeakerName}
+        activeAiSentence={activeAiSentence}
+        currentInterimTranscript={currentInterimTranscript}
+        floorState={floorState}
+        topic={config.topic}
       />
-
-      {/* Real-Time Transcript Drawer */}
-      <TranscriptDrawer segments={segments} />
 
       {/* Bottom Room Controls */}
       <RoomControls

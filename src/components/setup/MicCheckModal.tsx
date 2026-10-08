@@ -56,38 +56,38 @@ export const MicCheckModal: React.FC<MicCheckModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Audio & Microphone Check">
       <div className="space-y-5">
         {/* Headphone Advisory */}
-        <div className="flex items-start gap-3 bg-blue-950/40 border border-blue-800/60 p-3.5 rounded-xl">
-          <Headphones className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 bg-blue-50 border border-blue-200 p-3.5 rounded-xl">
+          <Headphones className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
           <div className="text-xs">
-            <p className="font-semibold text-blue-200 mb-0.5">
+            <p className="font-semibold text-blue-900 mb-0.5">
               Headphones Recommended
             </p>
-            <p className="text-slate-300 leading-relaxed">
+            <p className="text-slate-600 leading-relaxed">
               Using headphones prevents laptop speaker echo, giving you seamless barge-in and instant interruption capabilities.
             </p>
           </div>
         </div>
 
         {/* Live Mic Level Visualizer */}
-        <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-xl space-y-3">
+        <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3">
           <div className="flex items-center justify-between text-xs font-semibold">
-            <span className="text-slate-300 flex items-center gap-1.5">
-              <Mic className="w-4 h-4 text-emerald-400" />
+            <span className="text-slate-800 flex items-center gap-1.5">
+              <Mic className="w-4 h-4 text-emerald-600" />
               Microphone Sensitivity Level
             </span>
-            <span className={audioLevel > 10 ? "text-emerald-400" : "text-slate-500"}>
+            <span className={audioLevel > 10 ? "text-emerald-700 font-bold" : "text-slate-500"}>
               {audioLevel > 10 ? "Voice Detected" : "Speak to test..."}
             </span>
           </div>
 
-          <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden p-0.5">
+          <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden p-0.5 border border-slate-300">
             <div
               className={`h-full rounded-full transition-all duration-75 ${
                 audioLevel > 50
-                  ? "bg-emerald-400 shadow-lg shadow-emerald-500/50"
+                  ? "bg-emerald-500 shadow-md"
                   : audioLevel > 15
-                  ? "bg-blue-400"
-                  : "bg-slate-700"
+                  ? "bg-blue-500"
+                  : "bg-slate-300"
               }`}
               style={{ width: `${Math.min(100, Math.max(5, audioLevel))}%` }}
             />

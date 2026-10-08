@@ -13,16 +13,16 @@ export const DimensionCard: React.FC<DimensionCardProps> = ({
   onClickQuote,
 }) => {
   const getScoreColor = (score: number) => {
-    if (score >= 4) return "text-emerald-400 bg-emerald-500/10 border-emerald-500/30";
-    if (score === 3) return "text-blue-400 bg-blue-500/10 border-blue-500/30";
-    return "text-amber-400 bg-amber-500/10 border-amber-500/30";
+    if (score >= 4) return "text-emerald-700 bg-emerald-50 border-emerald-200";
+    if (score === 3) return "text-blue-700 bg-blue-50 border-blue-200";
+    return "text-amber-700 bg-amber-50 border-amber-200";
   };
 
   return (
-    <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-sm flex flex-col justify-between">
+    <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm flex flex-col justify-between hover:border-slate-300 transition-all">
       <div>
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h4 className="text-sm font-bold text-white leading-snug">
+          <h4 className="text-sm font-bold text-slate-900 leading-snug">
             {dimension.displayName}
           </h4>
           <span
@@ -35,7 +35,7 @@ export const DimensionCard: React.FC<DimensionCardProps> = ({
           </span>
         </div>
 
-        <p className="text-xs text-slate-300 leading-relaxed mb-3">
+        <p className="text-xs text-slate-600 leading-relaxed mb-3">
           {dimension.summary}
         </p>
 
@@ -43,12 +43,12 @@ export const DimensionCard: React.FC<DimensionCardProps> = ({
         <div className="space-y-2 mb-3">
           {dimension.strengths?.length > 0 && (
             <div className="space-y-1">
-              <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block">
+              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">
                 What went well:
               </span>
               {dimension.strengths.map((s, idx) => (
-                <div key={idx} className="flex items-start gap-1.5 text-xs text-slate-300">
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                <div key={idx} className="flex items-start gap-1.5 text-xs text-slate-700">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                   <span>{s}</span>
                 </div>
               ))}
@@ -57,12 +57,12 @@ export const DimensionCard: React.FC<DimensionCardProps> = ({
 
           {dimension.improvements?.length > 0 && (
             <div className="space-y-1 pt-1">
-              <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
+              <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">
                 Areas to elevate:
               </span>
               {dimension.improvements.map((imp, idx) => (
-                <div key={idx} className="flex items-start gap-1.5 text-xs text-slate-300">
-                  <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                <div key={idx} className="flex items-start gap-1.5 text-xs text-slate-700">
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
                   <span>{imp}</span>
                 </div>
               ))}
@@ -73,8 +73,8 @@ export const DimensionCard: React.FC<DimensionCardProps> = ({
 
       {/* Verified Evidence Quotes */}
       {dimension.evidence && dimension.evidence.length > 0 ? (
-        <div className="space-y-1.5 pt-2 border-t border-slate-800">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+        <div className="space-y-1.5 pt-2 border-t border-slate-100">
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
             Evidence Moments:
           </span>
           {dimension.evidence.map((ev, idx) => (
@@ -82,7 +82,7 @@ export const DimensionCard: React.FC<DimensionCardProps> = ({
           ))}
         </div>
       ) : (
-        <div className="text-[11px] text-slate-500 italic pt-2 border-t border-slate-800">
+        <div className="text-[11px] text-slate-400 italic pt-2 border-t border-slate-100">
           No direct moment cited for this dimension.
         </div>
       )}

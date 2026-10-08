@@ -7,11 +7,11 @@ interface BadgeProps {
   variant?: "blue" | "emerald" | "amber" | "indigo" | "red";
 }
 
-export const Badge: React.FC<BadgeProps> = ({ type, label, variant = "blue" }) => {
+export const Badge: React.FC<BadgeProps> = ({ type, label }) => {
   if (type === "ai") {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30">
-        <Bot className="w-2.5 h-2.5" />
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-800 border border-slate-300">
+        <Bot className="w-2.5 h-2.5 text-blue-600" />
         AI
       </span>
     );
@@ -19,7 +19,7 @@ export const Badge: React.FC<BadgeProps> = ({ type, label, variant = "blue" }) =
 
   if (type === "user") {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300">
         <User className="w-2.5 h-2.5" />
         You
       </span>
@@ -28,14 +28,14 @@ export const Badge: React.FC<BadgeProps> = ({ type, label, variant = "blue" }) =
 
   if (type === "moderator") {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
+      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-300">
         Moderator
       </span>
     );
   }
 
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700">
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-300">
       {label}
     </span>
   );
