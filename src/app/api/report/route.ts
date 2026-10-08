@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
     let rawReportJson: any = null;
     const geminiKey = process.env.GEMINI_API_KEY;
     const groqKey = process.env.GROQ_API_KEY;
+    const openaiKey = process.env.OPENAI_API_KEY;
 
     if (geminiKey) {
       const response = await fetch(
@@ -82,7 +83,28 @@ export async function POST(req: NextRequest) {
           Authorization: `Bearer ${groqKey}`,
         },
         body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
+          model: process.env.GROQ_MODEL || "qwen/qwen3.8-27b",
+          messages: [{ role: "user", content: prompt }],
+          response_format: { type: "json_object" },
+          temperature: 0.2,
+        }),
+      });
+      const data = await response.json();
+      const text = data.choices?.[0]?.message?.content;
+      if (text) {
+        try {
+          rawReportJson = JSON.parse(text);
+        } catch {}
+      }
+    } else if (openaiKey) {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${openaiKey}`,
+        },
+        body: JSON.stringify({
+          model: process.env.OPENAI_MODEL || "gpt-4o-mini",
           messages: [{ role: "user", content: prompt }],
           response_format: { type: "json_object" },
           temperature: 0.2,

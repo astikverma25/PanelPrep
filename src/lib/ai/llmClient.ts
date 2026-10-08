@@ -26,6 +26,7 @@ export async function callStreamingLLMWithFallback(
 
   const groqApiKey = process.env.GROQ_API_KEY;
   const geminiApiKey = process.env.GEMINI_API_KEY;
+  const openaiApiKey = process.env.OPENAI_API_KEY;
 
   try {
     let response: Response;
@@ -39,7 +40,7 @@ export async function callStreamingLLMWithFallback(
           Authorization: `Bearer ${groqApiKey}`,
         },
         body: JSON.stringify({
-          model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+          model: process.env.GROQ_MODEL || "qwen/qwen3.8-27b",
           messages,
           max_tokens: 100,
           temperature: 0.7,
@@ -50,10 +51,9 @@ export async function callStreamingLLMWithFallback(
     } else if (geminiApiKey) {
       // Fallback Primary: Gemini
       const prompt = messages.map((m) => `${m.role}: ${m.content}`).join("\n\n");
+      const model = process.env.GEMINI_MODEL || "gemini-1.5-flash";
       response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${
-          process.env.GEMINI_MODEL || "gemini-1.5-flash"
-        }:streamGenerateContent?alt=sse&key=${geminiApiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${geminiApiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -64,8 +64,25 @@ export async function callStreamingLLMWithFallback(
           signal: controller.signal,
         }
       );
+    } else if (openaiApiKey) {
+      // OpenAI Provider
+      response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${openaiApiKey}`,
+        },
+        body: JSON.stringify({
+          model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+          messages,
+          max_tokens: 100,
+          temperature: 0.7,
+          stream: true,
+        }),
+        signal: controller.signal,
+      });
     } else {
-      // No keys provided: use safe fallback line immediately
+      // No keys configured in .env.local: use safe canned fallback line
       callbacks.onSentence(fallbackCannedLine);
       callbacks.onDone(fallbackCannedLine);
       return;
